@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ecommerce-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # External PostgreSQL configuration (Supabase)
+      - SPRING_DATASOURCE_URL=${DB_URL:jdbc:postgresql://db.hrlnhfwhvduvqzdmoqbg.supabase.co:5432/postgres}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME:postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+
+      # JPA Configuration
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+
+      # Connection Pool settings
+      - SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=10
+      - SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE=5
+      - SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT=300000
+      - SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT=30000
+
+      # Logging
+      - LOGGING_LEVEL_COM_BEINGATUSHAR=DEBUG
+      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=INFO
+
+      # Server configuration
+      - SERVER_PORT=8080
+      - SERVER_ERROR_INCLUDE_MESSAGE=always
+
+    restart: unless-stopped
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/v1/banner" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+networks:
+  ecommerce-network:
+    driver: bridge
